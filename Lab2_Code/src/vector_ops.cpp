@@ -217,9 +217,9 @@ vector <float> dot (const vector <float>& m1, const vector <float>& m2, const in
 	    {
 		for( int x = row; x< row+block_size ; x++ )
 		{
-			for( int y = k ; y < k+block_size ; y++)
+			for(int z = col; z < col+block_size ; z++)
 			{
-				for(int z = col; z < col+block_size ; z++)
+				for(int y = k ; y < k+block_size ; y++ )
 				{
 
 					 output[ x * (col+block_size) + z ] += m1[ x * (k+block_size) + y ] * m2[ y * (col+block_size) + z ];
