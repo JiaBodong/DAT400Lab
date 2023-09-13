@@ -1,6 +1,6 @@
 IDIR=include
 CXX=g++ -g
-CXXFLAGS=-I$(IDIR) -std=c++11 -fopenmp -O3 -floop-interchange
+CXXFLAGS=-I$(IDIR) -std=c++11 -fopenmp -O3
 
 ODIR=src
 LDIR =../lib
@@ -35,7 +35,7 @@ run_pthreads:
 	./nnetwork
 
 run_perf:
-	perf record -g -e cache-misses ./nnetwork
+	perf record -e LLC-misses ./nnetwork
 
 run_parallel:
 	mpirun -np 4 ./nnetwork_mpi

@@ -109,7 +109,7 @@ int main(int argc, char * argv[]) {
     chrono::duration<double> elapsed_seconds = t4-t3;
 
     double epochtime = elapsed_seconds.count();
-    cout << "epoch time" << epochtime << endl;
+    //cout << "epoch time" << epochtime << endl;
     // Updating the parameters
     W3 = W3 - lr * dW3;
     W2 = W2 - lr * dW2;

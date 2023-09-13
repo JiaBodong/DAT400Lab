@@ -5,8 +5,8 @@
 #include <iostream>
 #include "vector_ops.h" 
 
-#define BLOCK_TILE 
-//#define USE_PTHREAD 
+//#define BLOCK_TILE 
+#define USE_PTHREAD 
 
 #ifdef USE_PTHREAD
 struct gemm_thread_args
@@ -206,23 +206,23 @@ vector <float> dot (const vector <float>& m1, const vector <float>& m2, const in
     
     vector <float> output (m1_rows*m2_columns, 0);
 #if defined(BLOCK_TILE)
-    const int block_size = 8 / sizeof(float); // 64 = common cache line size
+    const int block_size = 64 / sizeof(float); // 64 = common cache line size
     int N = m1_rows;
     int M = m2_columns; 
     int K = m1_columns;
 
-    for( int row = 0; row < N; row+=block_size ) {
-        for( int k = 0; k < K; k+=block_size ) {
-            for( int col = 0; col < M; col+=block_size )
+    for( int ii = 0; ii < N; ii+=block_size ) {
+        for( int jj = 0; jj < K; jj+=block_size ) {
+            for( int kk = 0; kk < M; kk+=block_size )
 	    {
-		for( int x = row; x< row+block_size ; x++ )
+		for( int i = ii; i< min(ii+block_size, N) ; i++ )//hang
 		{
-			for(int z = col; z < col+block_size ; z++)
+			for( int j = jj ; j < min(jj+block_size,K) ; j++)//lie
 			{
-				for(int y = k ; y < k+block_size ; y++ )
+				for(int k = kk; k < min(kk+block_size,M); k++)//lie2
 				{
 
-					 output[ x * (col+block_size) + z ] += m1[ x * (k+block_size) + y ] * m2[ y * (col+block_size) + z ];
+					 output[ i * M + k] += m1[ i * K + j ] * m2[ k * M + k];
 				}
 			}
 		}
@@ -232,16 +232,23 @@ vector <float> dot (const vector <float>& m1, const vector <float>& m2, const in
 // [TASK] WRITE CODE FOR BLOCK TILLING HERE
 #elif defined(USE_PTHREAD) 
 
-    const int num_partitions = 1; //[TASK] SHOULD BE CONFIGURED BY USER
+    const int num_partitions =48; //[TASK] SHOULD BE CONFIGURED BY USER
+    
     pthread_t threads[num_partitions];
     for (int i = 0; i < num_partitions; ++i) {
-      gemm_thread_args* args = new gemm_thread_args;
+      gemm_thread_args* args = new gemm_thread_args();
       args->output = &output;
-      // assign rest of the arguments of gemm_thread_args accordingly
-      //pthread_create( [TASK] FILL IN ARGUMENTS );   
+      args->m1 = &m1;
+      args->m2 = &m2;
+      args->m1_columns = m1_columns;
+      args->m2_columns = m2_columns;
+      args->row_start = (int)((m1_rows/num_partitions)*i+1);
+      args->row_end = min((int)((m1_rows/num_partitions)*(i+1)+1),m1_rows);
+      
+      pthread_create( &threads[i], NULL, dot_block, args);   
     }
     for (int i = 0; i < num_partitions; ++i) {
-      //pthread_join( [TASK] FILL IN ARGUMENTS);
+      pthread_join( threads[i], NULL);
     }
 #else
     for( int row = 0; row < m1_rows; ++row ) {
