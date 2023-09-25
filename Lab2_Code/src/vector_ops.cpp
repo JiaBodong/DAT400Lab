@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include "vector_ops.h" 
+#include <omp.h>
 
 //#define BLOCK_TILE 
 //#define USE_PTHREAD 
