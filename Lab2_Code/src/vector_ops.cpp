@@ -232,8 +232,7 @@ vector <float> dot (const vector <float>& m1, const vector <float>& m2, const in
 // [TASK] WRITE CODE FOR BLOCK TILLING HERE
 #elif defined(USE_PTHREAD) 
 
-    const int num_partitions =48; //[TASK] SHOULD BE CONFIGURED BY USER
-    
+    const int num_partitions =48; //[TASK] SHOULD BE CONFIGURED BY USE
     pthread_t threads[num_partitions];
     for (int i = 0; i < num_partitions; ++i) {
       gemm_thread_args* args = new gemm_thread_args();

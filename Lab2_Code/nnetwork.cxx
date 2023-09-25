@@ -72,7 +72,7 @@ int main(int argc, char * argv[]) {
   vector <float> W2 = random_vector(128*64);
   vector <float> W3 = random_vector(64*10);
   
-  double  exe_time = 0.0;
+  double  rate = 0.0;
   std::chrono::time_point<std::chrono::system_clock> t1,t2,t3,t4;     
   cout << "Training the model ...\n";
   for (unsigned i = 0; i < 1000; ++i) {    
@@ -132,9 +132,9 @@ int main(int argc, char * argv[]) {
       cout << "Iteration Time: "  << ticks << "s" << endl;
       cout << "Loss: " << loss/BATCH_SIZE << endl;
       cout << "*******************************************" << endl;
-      exe_time += ticks;
+      rate = epochtime/ticks;
     };      
   };
-  cout << "exe time" << exe_time << endl;
+  cout << "rate" << rate << endl;
   return 0;
 }
