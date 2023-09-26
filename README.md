@@ -1,2 +1,2 @@
-# DAT400Lab2
-This is lab2 of my course "High performance parallel program" in Chalmers
+# DAT400
+This is lab and workshop exercise of my course "High performance parallel program" in Chalmers
