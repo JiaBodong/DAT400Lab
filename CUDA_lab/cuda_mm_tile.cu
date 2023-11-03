@@ -5,8 +5,9 @@
 //CUDA RunTime API
 #include <cuda_runtime.h>
 
-#define MATRIX_SIZE 66
-#define BLOCK_DIM 32
+#define MATRIX_SIZE 1024
+#define BLOCK_DIM 16
+// #define numBlocks 32
 void printDeviceProp(const cudaDeviceProp &prop)
 {
     printf("Device Name : %s.\n", prop.name);
@@ -89,9 +90,21 @@ __global__ static void matMultCUDA(const float* a, const float* b, float* c, int
     float temp = 0;
     for(int i = 0; i<(n / BLOCK_DIM); i++)
     {   
-        shared_a[ty][tx] = a[row * n + i *BLOCK_DIM + tx];
-        shared_b[ty][tx] = b[(i * BLOCK_DIM + ty)*n + col];
-        __syncthreads();//sync all the threads , but in this part of code, we just see the thread [ty][tx]
+        if(i > numBlocks)
+        {
+            shared_a[ty][tx] = a[(row+i-numBlocks) * n + i*BLOCK_DIM + tx];
+            shared_b[ty][tx] = b[(i * BLOCK_DIM + ty)*n + col + i -numBlocks];
+            __syncthreads();
+        }
+      
+
+        else
+        {
+            shared_a[ty][tx] = a[row * n + i *BLOCK_DIM + tx];
+            shared_b[ty][tx] = b[(i * BLOCK_DIM + ty)*n + col];
+            __syncthreads();//sync all the threads , but in this part of code, we just see the thread [ty][tx]
+        }
+      
         for(int j = 0; j < BLOCK_DIM ; j++)
         {
             temp += shared_a[ty][j] * shared_b[j][tx];
@@ -104,14 +117,53 @@ __global__ static void matMultCUDA(const float* a, const float* b, float* c, int
     {
         for (int k = (n / BLOCK_DIM) * BLOCK_DIM; k < n; k++)//compute the index which the remaind part begin after divided region
         {
-            printf("index:  %d", k);
+            // printf("index:  %d", k);
             temp += a[row * n + k] * b[k * n + col];//each thread conmpute the remain part of the row of a and the col of b
         }
         c[row * n + col] = temp;
-    }
-    //c[row * n + col] = temp;
 
+    }
 }
+
+/* 1 dimension */
+// __global__ static void matMultCUDA(const float* a, const float* b, float* c, int n)
+// {
+//     __shared__ float shared_a[BLOCK_DIM * BLOCK_DIM];
+//     __shared__ float shared_b[BLOCK_DIM * BLOCK_DIM];
+
+//     int bx = blockIdx.x;
+//     int tx = threadIdx.x;
+
+//     int row = bx * blockDim.x + (tx / BLOCK_DIM);
+//     int col = bx * blockDim.x + (tx % BLOCK_DIM);
+
+//     float temp = 0;
+    
+//     for (int i = 0; i < (n / BLOCK_DIM); i++)
+//     {   
+//         shared_a[tx] = a[row * n + i * BLOCK_DIM + (tx % BLOCK_DIM)];
+//         shared_b[tx] = b[(i * BLOCK_DIM + (tx / BLOCK_DIM)) * n + col];
+//         __syncthreads();
+
+//         for (int j = 0; j < BLOCK_DIM; j++)
+//         {
+//             temp += shared_a[(tx / BLOCK_DIM) * BLOCK_DIM + j] * shared_b[j * BLOCK_DIM + (tx % BLOCK_DIM)];
+//         }
+//         __syncthreads();
+//     }
+
+//     if (row < n && col < n)
+//     {
+//         for (int k = (n / BLOCK_DIM) * BLOCK_DIM; k < n; k++)
+//         {
+//             temp += a[row * n + k] * b[k * n + col];
+//         }
+//         c[row * n + col] = temp;
+//     }
+// }
+
+
+
 
 int main()
 {
@@ -151,8 +203,8 @@ int main()
     /* Task: Number of Blocks and Threads && Dimention*/
 
     // 
-    
-    int numBlocks = (n + BLOCK_DIM - 1) / BLOCK_DIM; // 
+    //int numBlocks = (n + BLOCK_DIM  - 1) / (BLOCK_DIM); // 
+    printf("numblocks = %d", numBlocks);
     dim3 dimGrid(numBlocks,numBlocks,1);
     dim3 dimBlock(BLOCK_DIM,BLOCK_DIM,1);
 

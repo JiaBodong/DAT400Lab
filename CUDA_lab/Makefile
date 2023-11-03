@@ -24,7 +24,7 @@ run_pt1:
 
 build_pt2: cuda_mm_tile
 
-	./cuda_mm_tile
+	ncu ./cuda_mm_tile
 
 clean:
 	rm *.o cuda_mm cuda_mm_tile
